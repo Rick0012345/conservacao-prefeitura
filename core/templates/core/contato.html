@@ -1,0 +1,214 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Contato - Conservação Prefeitura{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="mb-4">
+            <i class="bi bi-envelope"></i> Entre em Contato
+        </h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Informações de Contato
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-geo-alt"></i> Endereço</h6>
+                        <p>Departamento de Conservação<br>
+                        Prefeitura Municipal<br>
+                        Rua da Conservação, 123<br>
+                        Centro - CEP: 00000-000</p>
+                        
+                        <h6><i class="bi bi-telephone"></i> Telefone</h6>
+                        <p>(11) 1234-5678</p>
+                        
+                        <h6><i class="bi bi-envelope"></i> Email</h6>
+                        <p>conservacao@prefeitura.gov.br</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-clock"></i> Horário de Funcionamento</h6>
+                        <p>Segunda a Sexta: 8h às 17h<br>
+                        Sábado: 8h às 12h<br>
+                        Domingo: Fechado</p>
+                        
+                        <h6><i class="bi bi-question-circle"></i> Suporte Técnico</h6>
+                        <p>Para questões relacionadas ao sistema:<br>
+                        <strong>suporte@prefeitura.gov.br</strong></p>
+                        
+                        <h6><i class="bi bi-shield-check"></i> Administração</h6>
+                        <p>Para questões administrativas:<br>
+                        <strong>admin@prefeitura.gov.br</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-chat-dots"></i> Formulário de Contato
+                </h5>
+                <p class="text-muted mb-0 mt-2">
+                    Preencha o formulário abaixo para entrar em contato conosco
+                </p>
+            </div>
+            <div class="card-body">
+                <form method="post" action="#">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">
+                                    <i class="bi bi-person"></i> Nome Completo
+                                </label>
+                                <input type="text" class="form-control" id="nome" name="nome" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope"></i> Email
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="telefone" class="form-label">
+                                    <i class="bi bi-telephone"></i> Telefone
+                                </label>
+                                <input type="tel" class="form-control" id="telefone" name="telefone">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="tipo_contato" class="form-label">
+                                    <i class="bi bi-tag"></i> Tipo de Contato
+                                </label>
+                                <select class="form-select" id="tipo_contato" name="tipo_contato" required>
+                                    <option value="">Selecione...</option>
+                                    <option value="duvida">Dúvida sobre o sistema</option>
+                                    <option value="suporte">Suporte técnico</option>
+                                    <option value="sugestao">Sugestão</option>
+                                    <option value="reclamacao">Reclamação</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="assunto" class="form-label">
+                            <i class="bi bi-card-heading"></i> Assunto
+                        </label>
+                        <input type="text" class="form-control" id="assunto" name="assunto" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="mensagem" class="form-label">
+                            <i class="bi bi-chat-text"></i> Mensagem
+                        </label>
+                        <textarea class="form-control" id="mensagem" name="mensagem" rows="6" required></textarea>
+                        <div class="form-text">
+                            Descreva sua dúvida ou solicitação de forma detalhada
+                        </div>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            Você está logado como <strong>{{ user.username }}</strong>. 
+                            Suas informações de contato serão associadas a este usuário.
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Limpar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Enviar Mensagem
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="form-response" class="mt-3">
+                    <!-- Resposta do formulário será exibida aqui -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Perguntas Frequentes -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-question-circle"></i> Perguntas Frequentes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Como criar um relatório?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Para criar um relatório, faça login no sistema e clique em "Criar Relatório" no menu do usuário. Preencha o título e o conteúdo do relatório e clique em "Salvar".
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Como visualizar meus relatórios?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Após fazer login, clique em "Meus Relatórios" no menu do usuário. Você verá todos os relatórios que criou, organizados por data de criação.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Quem pode ver meus relatórios?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Usuários normais podem ver apenas seus próprios relatórios. Administradores do sistema podem visualizar todos os relatórios de todos os usuários.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Como me tornar um administrador?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Apenas administradores existentes podem conceder permissões de administrador. Entre em contato com o suporte técnico para solicitar acesso administrativo.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

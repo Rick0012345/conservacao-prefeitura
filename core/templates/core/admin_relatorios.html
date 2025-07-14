@@ -1,0 +1,198 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Admin - Relatórios - Conservação Prefeitura{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-shield-check"></i> Administração - Relatórios
+                <span class="badge bg-warning ms-2">{{ total_relatorios }}</span>
+            </h2>
+            <div class="d-flex gap-2">
+                <a href="{% url 'core:criar_relatorio' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle"></i> Criar Relatório
+                </a>
+                <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-gear"></i> Django Admin
+                </a>
+            </div>
+        </div>
+        
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-funnel"></i> Filtros de Busca
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-5">
+                        <label for="search" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search }}" placeholder="Título, conteúdo ou usuário">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="usuario" class="form-label">Usuário</label>
+                        <select class="form-select" id="usuario" name="usuario">
+                            <option value="">Todos os usuários</option>
+                            {% for user in usuarios %}
+                                <option value="{{ user.username }}" 
+                                        {% if user.username == usuario_filtro %}selected{% endif %}>
+                                    {{ user.username }} 
+                                    {% if user.get_full_name %}({{ user.get_full_name }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'core:admin_relatorios' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Limpar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if relatorios %}
+            <!-- Informações da pesquisa -->
+            <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="bi bi-info-circle me-2"></i>
+                <div>
+                    Mostrando <strong>{{ relatorios.start_index }} - {{ relatorios.end_index }}</strong> 
+                    de <strong>{{ total_relatorios }}</strong> relatórios
+                    {% if search or usuario_filtro %}
+                        com os filtros aplicados
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                {% for relatorio in relatorios %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 border-start border-warning border-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h5 class="card-title">{{ relatorio.titulo }}</h5>
+                                    <small class="text-muted">ID: {{ relatorio.pk }}</small>
+                                </div>
+                                <p class="card-text">
+                                    {{ relatorio.conteudo|truncatewords:15 }}
+                                </p>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">
+                                            <i class="bi bi-person-circle"></i> 
+                                            <strong>{{ relatorio.usuario.username }}</strong>
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar3"></i> 
+                                            {{ relatorio.data_criacao|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">
+                                            {% if relatorio.usuario.get_full_name %}
+                                                {{ relatorio.usuario.get_full_name }}
+                                            {% else %}
+                                                Usuário: {{ relatorio.usuario.username }}
+                                            {% endif %}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock"></i> 
+                                            {{ relatorio.data_criacao|time:"H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Enviado
+                                    </span>
+                                    <a href="{% url 'core:detalhes_relatorio' relatorio.pk %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Visualizar
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">
+                                        <i class="bi bi-fonts"></i> {{ relatorio.conteudo|length }} caracteres
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="bi bi-card-text"></i> {{ relatorio.conteudo|wordcount }} palavras
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Paginação -->
+            {% if relatorios.has_other_pages %}
+                <nav aria-label="Navegação de páginas" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if relatorios.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ relatorios.previous_page_number }}&search={{ search }}&usuario={{ usuario_filtro }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in relatorios.paginator.page_range %}
+                            {% if relatorios.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > relatorios.number|add:'-3' and num < relatorios.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&search={{ search }}&usuario={{ usuario_filtro }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if relatorios.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ relatorios.next_page_number }}&search={{ search }}&usuario={{ usuario_filtro }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-file-earmark-text" style="font-size: 4rem; color: #ccc;"></i>
+                <h3 class="mt-3">Nenhum relatório encontrado</h3>
+                <p class="text-muted">
+                    {% if search or usuario_filtro %}
+                        Não há relatórios que correspondam aos filtros aplicados.
+                        <br>
+                        <a href="{% url 'core:admin_relatorios' %}" class="btn btn-outline-primary mt-2">
+                            <i class="bi bi-arrow-clockwise"></i> Limpar Filtros
+                        </a>
+                    {% else %}
+                        Ainda não existem relatórios no sistema.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,119 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Sobre - Conservação Prefeitura{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="mb-4">Sobre o Sistema de Relatórios</h1>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Sistema de Relatórios da Conservação Prefeitura</h5>
+                <p class="card-text">
+                    Este sistema foi desenvolvido para facilitar a criação e gestão de relatórios
+                    pelos funcionários da Conservação Prefeitura. A plataforma permite que usuários
+                    normais criem relatórios que são enviados para o banco de dados, enquanto
+                    administradores podem visualizar e gerenciar todos os relatórios do sistema.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Para Usuários Normais</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="bi bi-file-earmark-plus text-primary me-2"></i>
+                        Criar relatórios com título e conteúdo
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-file-earmark-text text-success me-2"></i>
+                        Visualizar próprios relatórios
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-calendar3 text-info me-2"></i>
+                        Acompanhar datas de criação
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-person-check text-secondary me-2"></i>
+                        Sistema de autenticação seguro
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="col-md-6">
+                <h4>Para Administradores</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="bi bi-shield-check text-warning me-2"></i>
+                        Visualizar todos os relatórios
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-search text-primary me-2"></i>
+                        Filtros e busca avançada
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-person-circle text-info me-2"></i>
+                        Identificar autor dos relatórios
+                    </li>
+                    <li class="list-group-item">
+                        <i class="bi bi-eye text-success me-2"></i>
+                        Visualização detalhada
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h4>Funcionalidades do Sistema</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Interface responsiva e moderna</li>
+                    <li class="list-group-item">Paginação automática</li>
+                    <li class="list-group-item">Mensagens de feedback</li>
+                    <li class="list-group-item">Sistema de permissões</li>
+                    <li class="list-group-item">Controle de acesso baseado em roles</li>
+                </ul>
+            </div>
+            
+            <div class="col-md-6">
+                <h4>Tecnologias Utilizadas</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Django Framework</li>
+                    <li class="list-group-item">HTMX para interatividade</li>
+                    <li class="list-group-item">Bootstrap para interface</li>
+                    <li class="list-group-item">SQLite para banco de dados</li>
+                    <li class="list-group-item">Python 3.x</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Como Usar o Sistema</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Usuários Normais:</h6>
+                        <ol>
+                            <li>Registrar-se no sistema</li>
+                            <li>Fazer login com suas credenciais</li>
+                            <li>Criar relatórios via formulário</li>
+                            <li>Visualizar relatórios próprios</li>
+                        </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-warning">Administradores:</h6>
+                        <ol>
+                            <li>Fazer login como staff</li>
+                            <li>Acessar painel administrativo</li>
+                            <li>Visualizar todos os relatórios</li>
+                            <li>Utilizar filtros e busca</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,143 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Criar Relatório - Conservação Prefeitura{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-file-earmark-plus"></i> Criar Novo Relatório
+                </h3>
+                <p class="text-muted mb-0 mt-2">
+                    <i class="bi bi-info-circle"></i> 
+                    Preencha os campos abaixo para criar um novo relatório
+                </p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.titulo.id_for_label }}" class="form-label">
+                            <i class="bi bi-card-heading"></i> {{ form.titulo.label }}
+                        </label>
+                        {{ form.titulo }}
+                        {% if form.titulo.errors %}
+                            <div class="text-danger">
+                                {{ form.titulo.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Escolha um título claro e descritivo para o seu relatório
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.conteudo.id_for_label }}" class="form-label">
+                            <i class="bi bi-card-text"></i> {{ form.conteudo.label }}
+                        </label>
+                        {{ form.conteudo }}
+                        {% if form.conteudo.errors %}
+                            <div class="text-danger">
+                                {{ form.conteudo.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Descreva detalhadamente o conteúdo do seu relatório
+                        </div>
+                    </div>
+                    
+                    <!-- Informações sobre o relatório -->
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> Informações Importantes:</h6>
+                        <ul class="mb-0">
+                            <li>Seu relatório será enviado para o banco de dados</li>
+                            <li>Você poderá visualizar seus relatórios em "Meus Relatórios"</li>
+                            <li>O relatório será associado ao seu usuário: <strong>{{ user.username }}</strong></li>
+                            <li>Data e hora de criação serão registradas automaticamente</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'core:meus_relatorios' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar aos Meus Relatórios
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Salvar Relatório
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Dicas para criação de relatórios -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightbulb"></i> Dicas para um Bom Relatório
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Para o Título:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check2 text-success"></i> Seja claro e específico</li>
+                            <li><i class="bi bi-check2 text-success"></i> Use palavras-chave relevantes</li>
+                            <li><i class="bi bi-check2 text-success"></i> Evite títulos muito longos</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Para o Conteúdo:</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check2 text-success"></i> Organize as informações</li>
+                            <li><i class="bi bi-check2 text-success"></i> Use parágrafos curtos</li>
+                            <li><i class="bi bi-check2 text-success"></i> Inclua detalhes relevantes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tituloInput = document.getElementById('{{ form.titulo.id_for_label }}');
+    const conteudoTextarea = document.getElementById('{{ form.conteudo.id_for_label }}');
+    
+    // Contador de caracteres para título
+    if (tituloInput) {
+        const tituloCounter = document.createElement('small');
+        tituloCounter.className = 'text-muted';
+        tituloInput.parentNode.appendChild(tituloCounter);
+        
+        function updateTituloCounter() {
+            const count = tituloInput.value.length;
+            tituloCounter.textContent = `${count} caracteres`;
+        }
+        
+        tituloInput.addEventListener('input', updateTituloCounter);
+        updateTituloCounter();
+    }
+    
+    // Contador de caracteres para conteúdo
+    if (conteudoTextarea) {
+        const conteudoCounter = document.createElement('small');
+        conteudoCounter.className = 'text-muted';
+        conteudoTextarea.parentNode.appendChild(conteudoCounter);
+        
+        function updateConteudoCounter() {
+            const count = conteudoTextarea.value.length;
+            const words = conteudoTextarea.value.trim().split(/\s+/).filter(word => word.length > 0).length;
+            conteudoCounter.textContent = `${count} caracteres, ${words} palavras`;
+        }
+        
+        conteudoTextarea.addEventListener('input', updateConteudoCounter);
+        updateConteudoCounter();
+    }
+});
+</script>
+{% endblock %} 
