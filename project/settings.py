@@ -1,6 +1,9 @@
 
 
 from pathlib import Path
+import os
+from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -10,10 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vpq0a3kn-^e2zle%uelsr8u*_1pwp&o=$71+_oj0_&k+dc^%u$'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-vpq0a3kn-^e2zle%uelsr8u*_1pwp&o=$71+_oj0_&k+dc^%u$')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['*']
 
@@ -63,25 +66,22 @@ WSGI_APPLICATION = 'project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuração para PostgreSQL (recomendado para produção)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'conservacao_prefeitura',
-#         'USER': 'postgres',
-#         'PASSWORD': 'sua_senha_aqui',  # Altere para sua senha do PostgreSQL
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
+# Database configuration with environment variable support
+DATABASE_URL = config('DATABASE_URL', default=None)
 
-# Configuração para SQLite (desenvolvimento)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if DATABASE_URL:
+    # Use PostgreSQL via environment variable (Docker)
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    # Fallback to SQLite for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

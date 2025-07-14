@@ -36,8 +36,7 @@ class ImagemRelatorioForm(forms.ModelForm):
         widgets = {
             'imagem': forms.FileInput(attrs={
                 'class': 'form-control',
-                'accept': 'image/*',
-                'multiple': True
+                'accept': 'image/*'
             }),
             'legenda': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -88,8 +87,7 @@ class MultipleImagemRelatorioForm(forms.Form):
     imagens = forms.FileField(
         widget=forms.ClearableFileInput(attrs={
             'class': 'form-control',
-            'accept': 'image/*',
-            'multiple': True
+            'accept': 'image/*'
         }),
         label='Selecionar Imagens',
         help_text='Você pode selecionar múltiplas imagens. Formatos: JPG, PNG, GIF. Máximo 5MB cada.'
