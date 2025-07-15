@@ -177,13 +177,20 @@ def admin_relatorios(request):
     usuarios_logados = User.objects.filter(relatorio__isnull=False).distinct()
     usuarios_anonimos = Relatorio.objects.filter(usuario__isnull=True).exclude(nome_usuario='').values_list('nome_usuario', flat=True).distinct()
     
+    # Contagem de relatórios com localização
+    relatorios_com_localizacao = Relatorio.objects.filter(
+        latitude__isnull=False, 
+        longitude__isnull=False
+    ).count()
+    
     return render(request, 'core/admin_relatorios.html', {
         'relatorios': page_obj,
         'usuarios_logados': usuarios_logados,
         'usuarios_anonimos': usuarios_anonimos,
         'search': search,
         'usuario_filtro': usuario_filtro,
-        'total_relatorios': relatorios.count()
+        'total_relatorios': relatorios.count(),
+        'relatorios_com_localizacao': relatorios_com_localizacao
     })
 
 @login_required

@@ -37,6 +37,31 @@ class Relatorio(models.Model):
     conteudo = models.TextField(
         verbose_name="Conteúdo"
     )
+    
+    # Campos de localização
+    latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        verbose_name="Latitude",
+        help_text="Latitude da localização do relatório"
+    )
+    longitude = models.DecimalField(
+        max_digits=11,
+        decimal_places=8,
+        null=True,
+        blank=True,
+        verbose_name="Longitude",
+        help_text="Longitude da localização do relatório"
+    )
+    endereco = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Endereço",
+        help_text="Endereço da localização do relatório"
+    )
+    
     data_criacao = models.DateTimeField(
         default=timezone.now, 
         verbose_name="Data de Criação"
@@ -79,6 +104,11 @@ class Relatorio(models.Model):
     def imagens(self):
         """Retorna todas as imagens associadas ao relatório"""
         return self.imagens_relatorio.all()
+    
+    @property
+    def tem_localizacao(self):
+        """Verifica se o relatório tem localização definida"""
+        return self.latitude is not None and self.longitude is not None
 
 def relatorio_imagem_path(instance, filename):
     """Função para definir o caminho das imagens dos relatórios"""

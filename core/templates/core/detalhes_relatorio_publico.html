@@ -1,6 +1,30 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block title %}{{ relatorio.titulo }} - Conservação Prefeitura{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .leaflet-container {
+        font-family: inherit;
+    }
+    .location-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .image-thumbnail {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .image-thumbnail:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -83,6 +107,39 @@
                     </div>
                 </div>
                 
+                <!-- Localização do relatório -->
+                {% if relatorio.tem_localizacao %}
+                    <div class="location-section">
+                        <h6 class="text-muted mb-3">
+                            <i class="bi bi-geo-alt-fill text-success"></i> 
+                            Localização do Relatório
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <strong>Endereço:</strong><br>
+                                    <span class="text-muted">{{ relatorio.endereco|default:"Não informado" }}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Coordenadas:</strong><br>
+                                    <span class="text-muted">
+                                        <i class="bi bi-geo"></i> 
+                                        {{ relatorio.latitude|floatformat:6 }}, {{ relatorio.longitude|floatformat:6 }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="location-map" style="height: 250px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"></div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="location-section text-center">
+                        <i class="bi bi-geo-alt text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mb-0">Localização não informada para este relatório</p>
+                    </div>
+                {% endif %}
+                
                 <!-- Imagens do relatório -->
                 {% with imagens=relatorio.imagens_relatorio.all %}
                     {% if imagens %}
@@ -95,13 +152,14 @@
                                 {% for imagem in imagens %}
                                     <div class="col-md-4 col-lg-3 mb-3">
                                         <div class="card">
-                                            <img src="{{ imagem.imagem.url }}" 
+                                            <img src="{% if imagem.imagem %}{{ imagem.imagem.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
                                                  alt="{{ imagem.legenda|default:'Imagem do relatório' }}"
-                                                 class="card-img-top"
+                                                 class="card-img-top image-thumbnail"
                                                  style="height: 200px; object-fit: cover;"
                                                  data-bs-toggle="modal" 
                                                  data-bs-target="#imageModal{{ forloop.counter }}"
-                                                 role="button">
+                                                 role="button"
+                                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlbSBuJmFtcDthdGlsZGU7byBkaXNwb24mYW1wO2ltYWNyO3ZlbDwvdGV4dD48L3N2Zz4='">
                                             {% if imagem.legenda %}
                                                 <div class="card-body py-2">
                                                     <small class="text-muted">{{ imagem.legenda }}</small>
@@ -125,15 +183,26 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body text-center">
-                                                    <img src="{{ imagem.imagem.url }}" 
+                                                    <img src="{% if imagem.imagem %}{{ imagem.imagem.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
                                                          alt="{{ imagem.legenda|default:'Imagem do relatório' }}"
-                                                         class="img-fluid">
+                                                         class="img-fluid"
+                                                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlbSBuJmFtcDthdGlsZGU7byBkaXNwb24mYW1wO2ltYWNyO3ZlbDwvdGV4dD48L3N2Zz4='">
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <small class="text-muted">
+                                                        Enviado em: {{ imagem.data_upload|date:"d/m/Y H:i" }}
+                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 {% endfor %}
                             </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mb-0">Nenhuma imagem anexada a este relatório</p>
                         </div>
                     {% endif %}
                 {% endwith %}
@@ -195,4 +264,74 @@
         </div>
     </div>
 </div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se há localização e inicializar o mapa
+    {% if relatorio.tem_localizacao %}
+        const latitude = {{ relatorio.latitude }};
+        const longitude = {{ relatorio.longitude }};
+        const endereco = "{{ relatorio.endereco|escapejs }}";
+        const titulo = "{{ relatorio.titulo|escapejs }}";
+        
+        // Inicializar o mapa
+        const map = L.map('location-map').setView([latitude, longitude], 15);
+        
+        // Adicionar tiles do OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Adicionar marcador
+        const marker = L.marker([latitude, longitude]).addTo(map);
+        
+        // Popup com informações
+        const popupContent = `
+            <div style="max-width: 200px;">
+                <h6><strong>${titulo}</strong></h6>
+                <p><strong>Localização:</strong><br>${endereco}</p>
+                <p><strong>Coordenadas:</strong><br>${latitude.toFixed(6)}, ${longitude.toFixed(6)}</p>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent).openPopup();
+        
+        // Redimensionar mapa após carregar
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    {% endif %}
+    
+    // Melhorar experiência das imagens
+    const imageModal = document.querySelectorAll('.modal');
+    imageModal.forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function() {
+            const img = modal.querySelector('.modal-body img');
+            if (img) {
+                img.style.maxHeight = '70vh';
+                img.style.objectFit = 'contain';
+            }
+        });
+    });
+    
+    // Adicionar indicador de carregamento para imagens
+    const imageElements = document.querySelectorAll('.image-thumbnail');
+    imageElements.forEach(img => {
+        img.addEventListener('load', function() {
+            this.style.opacity = '1';
+        });
+        
+        img.addEventListener('error', function() {
+            console.warn('Erro ao carregar imagem:', this.src);
+            this.style.opacity = '0.5';
+        });
+        
+        // Inicializar com opacidade reduzida
+        img.style.opacity = '0.7';
+    });
+});
+</script>
 {% endblock %} 

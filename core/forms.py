@@ -48,7 +48,7 @@ class RelatorioForm(forms.ModelForm):
     
     class Meta:
         model = Relatorio
-        fields = ['titulo', 'conteudo', 'nome_usuario', 'email_usuario']
+        fields = ['titulo', 'conteudo', 'nome_usuario', 'email_usuario', 'latitude', 'longitude', 'endereco']
         widgets = {
             'titulo': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -59,10 +59,18 @@ class RelatorioForm(forms.ModelForm):
                 'rows': 8,
                 'placeholder': 'Descreva detalhadamente o problema ou situação...'
             }),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
+            'endereco': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Endereço do local (opcional)',
+                'readonly': True
+            }),
         }
         labels = {
             'titulo': 'Título do Relatório',
-            'conteudo': 'Descrição do Problema'
+            'conteudo': 'Descrição do Problema',
+            'endereco': 'Localização'
         }
     
     def __init__(self, *args, **kwargs):

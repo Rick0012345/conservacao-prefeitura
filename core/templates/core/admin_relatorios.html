@@ -2,6 +2,26 @@
 
 {% block title %}Admin - Relatórios - Conservação Prefeitura{% endblock %}
 
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .leaflet-container {
+        font-family: inherit;
+    }
+    .location-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+    .map-toggle {
+        cursor: pointer;
+        user-select: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -11,9 +31,30 @@
                 <span class="badge bg-warning ms-2">{{ total_relatorios }}</span>
             </h2>
             <div>
+                <button class="btn btn-outline-success me-2" id="toggle-map">
+                    <i class="bi bi-map"></i> <span id="map-toggle-text">Mostrar Mapa</span>
+                </button>
                 <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary">
                     <i class="bi bi-gear"></i> Django Admin
                 </a>
+            </div>
+        </div>
+        
+        <!-- Mapa Geral dos Relatórios -->
+        <div class="card mb-4" id="map-card" style="display: none;">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-geo-alt"></i> Mapa dos Relatórios
+                    <span class="badge bg-info ms-2">{{ relatorios_com_localizacao }}</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="admin-map" style="height: 400px; width: 100%;"></div>
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> Clique nos marcadores para ver detalhes dos relatórios
+                    </small>
+                </div>
             </div>
         </div>
         
@@ -98,7 +139,14 @@
             <div class="row">
                 {% for relatorio in relatorios %}
                     <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 border-start border-warning border-4">
+                        <div class="card h-100 border-start border-warning border-4 position-relative">
+                            {% if relatorio.tem_localizacao %}
+                                <span class="location-badge">
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                    </span>
+                                </span>
+                            {% endif %}
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-2">
                                     <h5 class="card-title">{{ relatorio.titulo }}</h5>
@@ -149,6 +197,13 @@
                                         <div class="mt-2">
                                             <small class="text-muted">
                                                 <i class="bi bi-image"></i> {{ relatorio.imagens_relatorio.count }} imagem{{ relatorio.imagens_relatorio.count|pluralize }}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                    {% if relatorio.tem_localizacao %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-geo-alt"></i> {{ relatorio.endereco|default:"Localização registrada" }}
                                             </small>
                                         </div>
                                     {% endif %}
@@ -231,4 +286,121 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let adminMap = null;
+    let markersGroup = null;
+    
+    const toggleMapBtn = document.getElementById('toggle-map');
+    const mapCard = document.getElementById('map-card');
+    const mapToggleText = document.getElementById('map-toggle-text');
+    
+    // Dados dos relatórios com localização
+    const relatoriosComLocalizacao = [
+        {% for relatorio in relatorios %}
+            {% if relatorio.tem_localizacao %}
+                {
+                    id: {{ relatorio.pk }},
+                    titulo: "{{ relatorio.titulo|escapejs }}",
+                    endereco: "{{ relatorio.endereco|escapejs }}",
+                    latitude: {{ relatorio.latitude }},
+                    longitude: {{ relatorio.longitude }},
+                    autor: "{{ relatorio.nome_autor|escapejs }}",
+                    data: "{{ relatorio.data_criacao|date:'d/m/Y H:i' }}",
+                    conteudo: "{{ relatorio.conteudo|truncatewords:10|escapejs }}",
+                    imagens: {{ relatorio.imagens_relatorio.count }},
+                    url: "{% url 'core:detalhes_relatorio' relatorio.pk %}"
+                },
+            {% endif %}
+        {% endfor %}
+    ];
+    
+    function initAdminMap() {
+        if (adminMap) return;
+        
+        // Coordenadas padrão (centro do Brasil)
+        const defaultLat = -15.7801;
+        const defaultLng = -47.9292;
+        
+        adminMap = L.map('admin-map').setView([defaultLat, defaultLng], 4);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(adminMap);
+        
+        // Criar grupo de marcadores
+        markersGroup = L.featureGroup().addTo(adminMap);
+        
+        // Adicionar marcadores para cada relatório
+        relatoriosComLocalizacao.forEach(function(relatorio) {
+            const marker = L.marker([relatorio.latitude, relatorio.longitude]);
+            
+            const popupContent = `
+                <div style="width: 250px;">
+                    <h6><strong>${relatorio.titulo}</strong></h6>
+                    <p><small>${relatorio.conteudo}</small></p>
+                    <hr>
+                    <p><strong>Autor:</strong> ${relatorio.autor}</p>
+                    <p><strong>Data:</strong> ${relatorio.data}</p>
+                    <p><strong>Localização:</strong> ${relatorio.endereco}</p>
+                    ${relatorio.imagens > 0 ? `<p><strong>Imagens:</strong> ${relatorio.imagens}</p>` : ''}
+                    <div class="d-grid">
+                        <a href="${relatorio.url}" class="btn btn-sm btn-primary" target="_blank">
+                            <i class="bi bi-eye"></i> Ver Detalhes
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent, {
+                maxWidth: 300,
+                minWidth: 250
+            });
+            
+            markersGroup.addLayer(marker);
+        });
+        
+        // Ajustar zoom para mostrar todos os marcadores
+        if (markersGroup.getLayers().length > 0) {
+            adminMap.fitBounds(markersGroup.getBounds(), {
+                padding: [20, 20]
+            });
+        }
+    }
+    
+    function toggleMap() {
+        if (mapCard.style.display === 'none') {
+            mapCard.style.display = 'block';
+            mapToggleText.textContent = 'Ocultar Mapa';
+            toggleMapBtn.innerHTML = '<i class="bi bi-map-fill"></i> <span id="map-toggle-text">Ocultar Mapa</span>';
+            
+            // Inicializar mapa
+            initAdminMap();
+            
+            // Redimensionar mapa após um pequeno delay
+            setTimeout(() => {
+                if (adminMap) {
+                    adminMap.invalidateSize();
+                }
+            }, 100);
+        } else {
+            mapCard.style.display = 'none';
+            mapToggleText.textContent = 'Mostrar Mapa';
+            toggleMapBtn.innerHTML = '<i class="bi bi-map"></i> <span id="map-toggle-text">Mostrar Mapa</span>';
+        }
+    }
+    
+    // Event listener para o botão de toggle
+    if (toggleMapBtn) {
+        toggleMapBtn.addEventListener('click', toggleMap);
+    }
+    
+    // Mostrar quantos relatórios têm localização
+    console.log(`Relatórios com localização: ${relatoriosComLocalizacao.length}`);
+});
+</script>
 {% endblock %} 
