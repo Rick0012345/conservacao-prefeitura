@@ -11,8 +11,25 @@ class Relatorio(models.Model):
     usuario = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
-        verbose_name="Usuário"
+        verbose_name="Usuário",
+        null=True,
+        blank=True,
+        help_text="Usuário logado que criou o relatório"
     )
+    
+    # Campos para usuários anônimos
+    nome_usuario = models.CharField(
+        max_length=100, 
+        verbose_name="Nome do Usuário",
+        blank=True,
+        help_text="Nome do usuário quando não logado"
+    )
+    email_usuario = models.EmailField(
+        verbose_name="Email do Usuário",
+        blank=True,
+        help_text="Email do usuário quando não logado"
+    )
+    
     titulo = models.CharField(
         max_length=200, 
         verbose_name="Título"
@@ -31,7 +48,32 @@ class Relatorio(models.Model):
         ordering = ['-data_criacao']
 
     def __str__(self):
-        return f"{self.titulo} - {getattr(self.usuario, 'username', 'Usuário indefinido')}"
+        if self.usuario:
+            return f"{self.titulo} - {self.usuario.username}"
+        elif self.nome_usuario:
+            return f"{self.titulo} - {self.nome_usuario}"
+        else:
+            return f"{self.titulo} - Anônimo"
+    
+    @property
+    def nome_autor(self):
+        """Retorna o nome do autor do relatório"""
+        if self.usuario:
+            return self.usuario.username
+        elif self.nome_usuario:
+            return self.nome_usuario
+        else:
+            return "Anônimo"
+    
+    @property
+    def email_autor(self):
+        """Retorna o email do autor do relatório"""
+        if self.usuario:
+            return self.usuario.email
+        elif self.email_usuario:
+            return self.email_usuario
+        else:
+            return ""
 
     @property
     def imagens(self):

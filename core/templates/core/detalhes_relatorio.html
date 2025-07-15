@@ -34,9 +34,21 @@
                         <h6 class="text-muted">Criado por:</h6>
                         <p class="mb-0">
                             <i class="bi bi-person-circle"></i> 
-                            {{ relatorio.usuario.get_full_name|default:relatorio.usuario.username }}
-                            <br>
-                            <small class="text-muted">(@{{ relatorio.usuario.username }})</small>
+                            {% if relatorio.usuario %}
+                                {{ relatorio.usuario.get_full_name|default:relatorio.usuario.username }}
+                                <br>
+                                <small class="text-muted">(@{{ relatorio.usuario.username }})</small>
+                            {% else %}
+                                {{ relatorio.nome_usuario|default:"Anônimo" }}
+                                <br>
+                                <small class="text-muted">
+                                    {% if relatorio.email_usuario %}
+                                        <i class="bi bi-envelope"></i> {{ relatorio.email_usuario }}
+                                    {% else %}
+                                        (Usuário anônimo)
+                                    {% endif %}
+                                </small>
+                            {% endif %}
                         </p>
                     </div>
                     <div class="col-md-3">

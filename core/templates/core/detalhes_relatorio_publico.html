@@ -1,0 +1,193 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ relatorio.titulo }} - Conservação Prefeitura{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-file-earmark-text"></i> Detalhes do Relatório
+                    </h3>
+                    <div>
+                        <a href="{% url 'core:meus_relatorios' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Informações do relatório -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <h6 class="text-muted">ID do Relatório:</h6>
+                        <p class="mb-0">
+                            <code class="fs-6">{{ relatorio.pk }}</code>
+                        </p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6 class="text-muted">Criado por:</h6>
+                        <p class="mb-0">
+                            <i class="bi bi-person-circle"></i> 
+                            {% if relatorio.usuario %}
+                                {{ relatorio.usuario.get_full_name|default:relatorio.usuario.username }}
+                                <br>
+                                <small class="text-muted">(@{{ relatorio.usuario.username }})</small>
+                            {% else %}
+                                {{ relatorio.nome_usuario|default:"Anônimo" }}
+                                <br>
+                                <small class="text-muted">
+                                    {% if relatorio.email_usuario %}
+                                        <i class="bi bi-envelope"></i> {{ relatorio.email_usuario }}
+                                    {% else %}
+                                        (Usuário anônimo)
+                                    {% endif %}
+                                </small>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6 class="text-muted">Data de criação:</h6>
+                        <p class="mb-0">
+                            <i class="bi bi-calendar3"></i> 
+                            {{ relatorio.data_criacao|date:"d/m/Y" }}
+                            <br>
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> 
+                                {{ relatorio.data_criacao|time:"H:i" }}
+                            </small>
+                        </p>
+                    </div>
+                    <div class="col-md-3">
+                        <h6 class="text-muted">Status:</h6>
+                        <p class="mb-0">
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Enviado
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Conteúdo do relatório -->
+                <div class="mb-4">
+                    <h4 class="text-primary">{{ relatorio.titulo }}</h4>
+                    <div class="mt-3">
+                        <h6 class="text-muted">Descrição:</h6>
+                        <div class="p-3 bg-light rounded">
+                            {{ relatorio.conteudo|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Imagens do relatório -->
+                {% with imagens=relatorio.imagens_relatorio.all %}
+                    {% if imagens %}
+                        <div class="mb-4">
+                            <h6 class="text-muted">
+                                <i class="bi bi-image"></i> 
+                                Imagens Anexadas ({{ imagens|length }})
+                            </h6>
+                            <div class="row">
+                                {% for imagem in imagens %}
+                                    <div class="col-md-4 col-lg-3 mb-3">
+                                        <div class="card">
+                                            <img src="{{ imagem.imagem.url }}" 
+                                                 alt="{{ imagem.legenda|default:'Imagem do relatório' }}"
+                                                 class="card-img-top"
+                                                 style="height: 200px; object-fit: cover;"
+                                                 data-bs-toggle="modal" 
+                                                 data-bs-target="#imageModal{{ forloop.counter }}"
+                                                 role="button">
+                                            {% if imagem.legenda %}
+                                                <div class="card-body py-2">
+                                                    <small class="text-muted">{{ imagem.legenda }}</small>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Modal para visualizar imagem em tamanho maior -->
+                                    <div class="modal fade" id="imageModal{{ forloop.counter }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">
+                                                        {% if imagem.legenda %}
+                                                            {{ imagem.legenda }}
+                                                        {% else %}
+                                                            Imagem {{ forloop.counter }}
+                                                        {% endif %}
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <img src="{{ imagem.imagem.url }}" 
+                                                         alt="{{ imagem.legenda|default:'Imagem do relatório' }}"
+                                                         class="img-fluid">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Estatísticas do relatório -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Estatísticas do Relatório</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h5 class="text-primary">{{ relatorio.conteudo|length }}</h5>
+                                            <small class="text-muted">Caracteres</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h5 class="text-success">{{ relatorio.conteudo|wordcount }}</h5>
+                                            <small class="text-muted">Palavras</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            {% with imagens=relatorio.imagens_relatorio.all %}
+                                                <h5 class="text-info">{{ imagens|length }}</h5>
+                                            {% endwith %}
+                                            <small class="text-muted">Imagens</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h5 class="text-warning">{{ relatorio.data_criacao|timesince }}</h5>
+                                            <small class="text-muted">Atrás</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ações -->
+        <div class="text-center mt-4">
+            <a href="{% url 'core:meus_relatorios' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar aos Meus Relatórios
+            </a>
+            <a href="{% url 'core:criar_relatorio' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Criar Novo Relatório
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -10,35 +10,57 @@
             <p class="lead">Plataforma para criação e gestão de relatórios da Conservação Prefeitura</p>
         </div>
         
+        <!-- Opções de relatórios disponíveis para todos -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-plus" style="font-size: 3rem; color: #0d6efd;"></i>
+                        <h5 class="card-title mt-3">Criar Relatório</h5>
+                        <p class="card-text">
+                            {% if user.is_authenticated %}
+                                Crie um novo relatório para enviar ao sistema.
+                            {% else %}
+                                Crie um relatório informando seu nome e email.
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'core:criar_relatorio' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Criar Relatório
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-earmark-text" style="font-size: 3rem; color: #198754;"></i>
+                        <h5 class="card-title mt-3">
+                            {% if user.is_authenticated %}
+                                Meus Relatórios
+                            {% else %}
+                                Relatórios Criados
+                            {% endif %}
+                        </h5>
+                        <p class="card-text">
+                            {% if user.is_authenticated %}
+                                Visualize todos os relatórios que você criou.
+                            {% else %}
+                                Veja os relatórios criados durante esta sessão.
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'core:meus_relatorios' %}" class="btn btn-success">
+                            <i class="bi bi-eye"></i> Ver Relatórios
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção específica para usuários logados -->
         {% if user.is_authenticated %}
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <i class="bi bi-file-earmark-plus" style="font-size: 3rem; color: #0d6efd;"></i>
-                            <h5 class="card-title mt-3">Criar Relatório</h5>
-                            <p class="card-text">Crie um novo relatório para enviar ao sistema.</p>
-                            <a href="{% url 'core:criar_relatorio' %}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle"></i> Criar Relatório
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <i class="bi bi-file-earmark-text" style="font-size: 3rem; color: #198754;"></i>
-                            <h5 class="card-title mt-3">Meus Relatórios</h5>
-                            <p class="card-text">Visualize todos os relatórios que você criou.</p>
-                            <a href="{% url 'core:meus_relatorios' %}" class="btn btn-success">
-                                <i class="bi bi-eye"></i> Ver Relatórios
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                {% if user.is_staff %}
+            {% if user.is_staff %}
+                <div class="row">
                     <div class="col-md-12 mb-4">
                         <div class="card border-warning">
                             <div class="card-body text-center">
@@ -51,29 +73,38 @@
                             </div>
                         </div>
                     </div>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
             
             <div class="text-center mt-4">
                 <p class="text-muted">Bem-vindo, {{ user.username }}!</p>
                 <p class="text-muted">Utilize as opções acima para gerenciar seus relatórios.</p>
             </div>
         {% else %}
-            <div class="text-center">
-                <div class="card">
-                    <div class="card-body">
-                        <i class="bi bi-person-circle" style="font-size: 4rem; color: #6c757d;"></i>
-                        <h5 class="card-title mt-3">Acesso Necessário</h5>
-                        <p class="card-text">Para utilizar o sistema de relatórios, você precisa estar logado.</p>
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                            <a href="{% url 'login' %}" class="btn btn-primary">
-                                <i class="bi bi-box-arrow-in-right"></i> Fazer Login
-                            </a>
-                            <a href="{% url 'core:register' %}" class="btn btn-outline-primary">
-                                <i class="bi bi-person-plus"></i> Criar Conta
-                            </a>
-                        </div>
+            <!-- Informações para usuários não logados -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Usuário Anônimo:</strong> Você pode criar relatórios sem fazer login. 
+                        Os relatórios criados ficarão disponíveis durante sua sessão. 
+                        Para um melhor controle dos seus relatórios, você pode 
+                        <a href="{% url 'core:register' %}" class="alert-link">criar uma conta</a> ou 
+                        <a href="{% url 'login' %}" class="alert-link">fazer login</a>.
                     </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted">Sistema disponível para todos os usuários!</p>
+                <p class="text-muted">Crie relatórios mesmo sem estar logado.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-box-arrow-in-right"></i> Fazer Login
+                    </a>
+                    <a href="{% url 'core:register' %}" class="btn btn-outline-success">
+                        <i class="bi bi-person-plus"></i> Criar Conta
+                    </a>
                 </div>
             </div>
         {% endif %}

@@ -1,13 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
-from .models import Relatorio
-from .forms import RelatorioForm, CustomUserCreationForm
+from django.db import transaction
+from .models import Relatorio, ImagemRelatorio
+from .forms import RelatorioForm, CustomUserCreationForm, MultipleImageUploadForm
 
 # Create your views here.
 
@@ -27,26 +28,66 @@ def is_admin(user):
     """Função para verificar se o usuário é admin"""
     return user.is_staff or user.is_superuser
 
-@login_required
 def criar_relatorio(request):
-    """View para criação de relatórios por usuários normais"""
+    """View para criação de relatórios com upload de imagens - disponível para todos os usuários"""
     if request.method == 'POST':
-        form = RelatorioForm(request.POST)
-        if form.is_valid():
-            relatorio = form.save(commit=False)
-            relatorio.usuario = request.user
-            relatorio.save()
-            messages.success(request, 'Relatório criado com sucesso!')
-            return redirect('criar_relatorio')
+        form = RelatorioForm(request.POST, user=request.user)
+        image_form = MultipleImageUploadForm(request.POST, request.FILES)
+        
+        if form.is_valid() and image_form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Criar o relatório
+                    relatorio = form.save(commit=False)
+                    
+                    # Se o usuário estiver logado, associar ao relatório
+                    if request.user.is_authenticated:
+                        relatorio.usuario = request.user
+                    
+                    relatorio.save()
+                    
+                    # Processar imagens se houver
+                    imagens = image_form.cleaned_data.get('imagens', [])
+                    if imagens:
+                        for ordem, imagem in enumerate(imagens):
+                            ImagemRelatorio.objects.create(
+                                relatorio=relatorio,
+                                imagem=imagem,
+                                ordem=ordem
+                            )
+                    
+                    messages.success(request, 'Relatório criado com sucesso!')
+                    
+                    # Armazenar ID do relatório na sessão para usuários anônimos
+                    if not request.user.is_authenticated:
+                        relatorios_sessao = request.session.get('relatorios_criados', [])
+                        relatorios_sessao.append(relatorio.id)
+                        request.session['relatorios_criados'] = relatorios_sessao
+                    
+                    return redirect('core:criar_relatorio')
+            
+            except Exception as e:
+                messages.error(request, f'Erro ao criar relatório: {str(e)}')
     else:
-        form = RelatorioForm()
+        form = RelatorioForm(user=request.user)
+        image_form = MultipleImageUploadForm()
     
-    return render(request, 'core/criar_relatorio.html', {'form': form})
+    return render(request, 'core/criar_relatorio.html', {
+        'form': form,
+        'image_form': image_form
+    })
 
-@login_required
 def meus_relatorios(request):
-    """View para visualização dos relatórios do usuário logado"""
-    relatorios = Relatorio.objects.filter(usuario=request.user)
+    """View para visualização dos relatórios do usuário - disponível para todos"""
+    if request.user.is_authenticated:
+        # Usuário logado: mostrar relatórios do usuário
+        relatorios = Relatorio.objects.filter(usuario=request.user).prefetch_related('imagens_relatorio')
+        titulo_pagina = f"Meus Relatórios ({request.user.username})"
+    else:
+        # Usuário anônimo: mostrar relatórios da sessão
+        relatorios_ids = request.session.get('relatorios_criados', [])
+        relatorios = Relatorio.objects.filter(id__in=relatorios_ids).prefetch_related('imagens_relatorio')
+        titulo_pagina = "Relatórios Criados Nesta Sessão"
     
     # Paginação
     paginator = Paginator(relatorios, 10)
@@ -55,14 +96,46 @@ def meus_relatorios(request):
     
     return render(request, 'core/meus_relatorios.html', {
         'relatorios': page_obj,
-        'total_relatorios': relatorios.count()
+        'total_relatorios': relatorios.count(),
+        'titulo_pagina': titulo_pagina
+    })
+
+def detalhes_relatorio_publico(request, pk):
+    """View para visualizar detalhes de um relatório específico - para usuários não logados"""
+    relatorio = get_object_or_404(
+        Relatorio.objects.prefetch_related('imagens_relatorio'),
+        pk=pk
+    )
+    
+    # Verificar se o usuário tem permissão para ver este relatório
+    pode_ver = False
+    
+    if request.user.is_authenticated:
+        # Usuário logado pode ver seus próprios relatórios
+        if relatorio.usuario == request.user:
+            pode_ver = True
+        # Admins podem ver todos os relatórios
+        elif is_admin(request.user):
+            pode_ver = True
+    else:
+        # Usuário anônimo pode ver apenas relatórios da sua sessão
+        relatorios_ids = request.session.get('relatorios_criados', [])
+        if relatorio.id in relatorios_ids:
+            pode_ver = True
+    
+    if not pode_ver:
+        messages.error(request, 'Você não tem permissão para ver este relatório.')
+        return redirect('core:home')
+    
+    return render(request, 'core/detalhes_relatorio_publico.html', {
+        'relatorio': relatorio
     })
 
 @login_required
 @user_passes_test(is_admin)
 def admin_relatorios(request):
     """View para admin visualizar todos os relatórios"""
-    relatorios = Relatorio.objects.all()
+    relatorios = Relatorio.objects.all().select_related('usuario').prefetch_related('imagens_relatorio')
     
     # Filtros
     search = request.GET.get('search', '')
@@ -72,23 +145,30 @@ def admin_relatorios(request):
         relatorios = relatorios.filter(
             Q(titulo__icontains=search) | 
             Q(conteudo__icontains=search) |
-            Q(usuario__username__icontains=search)
+            Q(usuario__username__icontains=search) |
+            Q(nome_usuario__icontains=search) |
+            Q(email_usuario__icontains=search)
         )
     
     if usuario_filtro:
-        relatorios = relatorios.filter(usuario__username=usuario_filtro)
+        relatorios = relatorios.filter(
+            Q(usuario__username=usuario_filtro) | 
+            Q(nome_usuario=usuario_filtro)
+        )
     
     # Paginação
     paginator = Paginator(relatorios, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Lista de usuários para filtro
-    usuarios = User.objects.filter(relatorio__isnull=False).distinct()
+    # Lista de usuários para filtro (incluindo anônimos)
+    usuarios_logados = User.objects.filter(relatorio__isnull=False).distinct()
+    usuarios_anonimos = Relatorio.objects.filter(usuario__isnull=True).exclude(nome_usuario='').values_list('nome_usuario', flat=True).distinct()
     
     return render(request, 'core/admin_relatorios.html', {
         'relatorios': page_obj,
-        'usuarios': usuarios,
+        'usuarios_logados': usuarios_logados,
+        'usuarios_anonimos': usuarios_anonimos,
         'search': search,
         'usuario_filtro': usuario_filtro,
         'total_relatorios': relatorios.count()
@@ -97,8 +177,11 @@ def admin_relatorios(request):
 @login_required
 @user_passes_test(is_admin)
 def detalhes_relatorio(request, pk):
-    """View para visualizar detalhes de um relatório específico"""
-    relatorio = get_object_or_404(Relatorio, pk=pk)
+    """View para visualizar detalhes de um relatório específico - apenas para admins"""
+    relatorio = get_object_or_404(
+        Relatorio.objects.prefetch_related('imagens_relatorio'),
+        pk=pk
+    )
     return render(request, 'core/detalhes_relatorio.html', {'relatorio': relatorio})
 
 def register(request):
@@ -109,7 +192,7 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Conta criada com sucesso!')
-            return redirect('home')
+            return redirect('core:home')
     else:
         form = CustomUserCreationForm()
     
