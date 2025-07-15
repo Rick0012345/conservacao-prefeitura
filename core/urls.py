@@ -16,7 +16,7 @@ urlpatterns = [
     path('relatorios/meus/', views.meus_relatorios, name='meus_relatorios'),
     path('relatorios/<int:pk>/', views.detalhes_relatorio_publico, name='detalhes_relatorio_publico'),
     
-    # Relatórios - Admin
-    path('admin/relatorios/', views.admin_relatorios, name='admin_relatorios'),
-    path('admin/relatorios/<int:pk>/', views.detalhes_relatorio, name='detalhes_relatorio'),
+    # Relatórios - Admin (mudança de URL para evitar conflito)
+    path('painel/relatorios/', views.admin_relatorios, name='admin_relatorios'),
+    path('painel/relatorios/<int:pk>/', views.detalhes_relatorio, name='detalhes_relatorio'),
 ] 

@@ -182,7 +182,12 @@
         <!-- Ações -->
         <div class="text-center mt-4">
             <a href="{% url 'core:meus_relatorios' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Voltar aos Meus Relatórios
+                <i class="bi bi-arrow-left"></i> 
+                {% if user.is_authenticated %}
+                    Voltar aos Meus Relatórios
+                {% else %}
+                    Voltar aos Relatórios Criados
+                {% endif %}
             </a>
             <a href="{% url 'core:criar_relatorio' %}" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Criar Novo Relatório

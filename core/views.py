@@ -29,7 +29,12 @@ def is_admin(user):
     return user.is_staff or user.is_superuser
 
 def criar_relatorio(request):
-    """View para criação de relatórios com upload de imagens - disponível para todos os usuários"""
+    """View para criação de relatórios - disponível apenas para usuários comuns"""
+    # Bloquear acesso para administradores
+    if request.user.is_authenticated and request.user.is_staff:
+        messages.warning(request, 'Administradores não podem criar relatórios. Use o painel administrativo para visualizar relatórios.')
+        return redirect('core:admin_relatorios')
+    
     if request.method == 'POST':
         form = RelatorioForm(request.POST, user=request.user)
         image_form = MultipleImageUploadForm(request.POST, request.FILES)
@@ -78,7 +83,12 @@ def criar_relatorio(request):
     })
 
 def meus_relatorios(request):
-    """View para visualização dos relatórios do usuário - disponível para todos"""
+    """View para visualização dos relatórios do usuário - disponível apenas para usuários comuns"""
+    # Bloquear acesso para administradores
+    if request.user.is_authenticated and request.user.is_staff:
+        messages.warning(request, 'Administradores não possuem relatórios próprios. Use o painel administrativo para visualizar todos os relatórios.')
+        return redirect('core:admin_relatorios')
+    
     if request.user.is_authenticated:
         # Usuário logado: mostrar relatórios do usuário
         relatorios = Relatorio.objects.filter(usuario=request.user).prefetch_related('imagens_relatorio')
@@ -101,7 +111,12 @@ def meus_relatorios(request):
     })
 
 def detalhes_relatorio_publico(request, pk):
-    """View para visualizar detalhes de um relatório específico - para usuários não logados"""
+    """View para visualizar detalhes de um relatório específico - para usuários comuns"""
+    # Bloquear acesso para administradores (eles devem usar a view de admin)
+    if request.user.is_authenticated and request.user.is_staff:
+        messages.info(request, 'Redirecionando para o painel administrativo.')
+        return redirect('core:detalhes_relatorio', pk=pk)
+    
     relatorio = get_object_or_404(
         Relatorio.objects.prefetch_related('imagens_relatorio'),
         pk=pk
@@ -113,9 +128,6 @@ def detalhes_relatorio_publico(request, pk):
     if request.user.is_authenticated:
         # Usuário logado pode ver seus próprios relatórios
         if relatorio.usuario == request.user:
-            pode_ver = True
-        # Admins podem ver todos os relatórios
-        elif is_admin(request.user):
             pode_ver = True
     else:
         # Usuário anônimo pode ver apenas relatórios da sua sessão

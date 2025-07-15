@@ -56,25 +56,40 @@
                         <a class="nav-link" href="{% url 'core:contato' %}">Contato</a>
                     </li>
                     
-                    <!-- Opções de relatórios disponíveis para todos -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:criar_relatorio' %}">
-                            <i class="bi bi-file-earmark-plus"></i> Criar Relatório
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'core:meus_relatorios' %}">
-                            <i class="bi bi-file-earmark-text"></i> 
-                            {% if user.is_authenticated %}
-                                Meus Relatórios
-                            {% else %}
-                                Relatórios Criados
-                            {% endif %}
-                        </a>
-                    </li>
+                    <!-- Opções de relatórios apenas para usuários comuns (não administradores) -->
+                    {% if not user.is_authenticated or not user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:criar_relatorio' %}">
+                                <i class="bi bi-file-earmark-plus"></i> Criar Relatório
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:meus_relatorios' %}">
+                                <i class="bi bi-file-earmark-text"></i> 
+                                {% if user.is_authenticated %}
+                                    Meus Relatórios
+                                {% else %}
+                                    Relatórios Criados
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
                 
                 <ul class="navbar-nav">
+                    <!-- Botão Admin sempre visível -->
+                    <li class="nav-item">
+                        {% if user.is_authenticated and user.is_staff %}
+                            <a class="nav-link text-warning" href="{% url 'core:admin_relatorios' %}">
+                                <i class="bi bi-shield-check"></i> Admin
+                            </a>
+                        {% else %}
+                            <a class="nav-link text-warning" href="{% url 'login' %}">
+                                <i class="bi bi-shield-lock"></i> Admin
+                            </a>
+                        {% endif %}
+                    </li>
+                    
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
@@ -84,6 +99,9 @@
                                 {% if user.is_staff %}
                                     <li><a class="dropdown-item" href="{% url 'core:admin_relatorios' %}">
                                         <i class="bi bi-shield-check"></i> Admin - Relatórios
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="bi bi-gear"></i> Django Admin
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
