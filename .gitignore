@@ -10,6 +10,5 @@
 .env.production
 .cursorrules
 db.sqlite3
-media/relatorios/*
 
 sss
