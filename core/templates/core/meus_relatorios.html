@@ -75,8 +75,11 @@
                                         <i class="bi bi-person"></i> 
                                         {% if relatorio.usuario %}
                                             {{ relatorio.usuario.username }}
+                                        {% elif relatorio.nome_usuario or relatorio.email_usuario %}
+                                            {{ relatorio.nome_usuario|default:"Não registrado" }}
+                                            <span class="text-info">(não registrado)</span>
                                         {% else %}
-                                            {{ relatorio.nome_usuario|default:"Anônimo" }}
+                                            <span class="text-warning">Anônimo</span>
                                         {% endif %}
                                     </small>
                                     <a href="{% url 'core:detalhes_relatorio_publico' relatorio.pk %}" 

@@ -65,15 +65,21 @@
                                 {{ relatorio.usuario.get_full_name|default:relatorio.usuario.username }}
                                 <br>
                                 <small class="text-muted">(@{{ relatorio.usuario.username }})</small>
-                            {% else %}
-                                {{ relatorio.nome_usuario|default:"Anônimo" }}
+                            {% elif relatorio.nome_usuario or relatorio.email_usuario %}
+                                {{ relatorio.nome_usuario|default:"Usuário não registrado" }}
                                 <br>
                                 <small class="text-muted">
                                     {% if relatorio.email_usuario %}
                                         <i class="bi bi-envelope"></i> {{ relatorio.email_usuario }}
                                     {% else %}
-                                        (Usuário anônimo)
+                                        (Usuário não registrado)
                                     {% endif %}
+                                </small>
+                            {% else %}
+                                Anônimo
+                                <br>
+                                <small class="text-muted">
+                                    (Usuário anônimo)
                                 </small>
                             {% endif %}
                         </p>
@@ -237,6 +243,7 @@
                 
                 <!-- Informações adicionais -->
                 {% if relatorio.usuario %}
+                <!-- Usuário autenticado (registrado) -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card bg-primary bg-opacity-10">
@@ -250,7 +257,7 @@
                                         {% if relatorio.usuario.is_staff %}
                                             <span class="badge bg-warning">Administrador</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">Usuário Normal</span>
+                                            <span class="badge bg-secondary">Usuário Registrado</span>
                                         {% endif %}
                                     </li>
                                 </ul>
@@ -282,19 +289,69 @@
                         </div>
                     </div>
                 </div>
+                {% elif relatorio.nome_usuario or relatorio.email_usuario %}
+                <!-- Usuário não registrado (mas identificado) -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-info bg-opacity-10">
+                            <div class="card-body">
+                                <h6 class="text-info">Usuário Não Registrado</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Nome:</strong> {{ relatorio.nome_usuario|default:"Não informado" }}</li>
+                                    <li><strong>Email:</strong> {{ relatorio.email_usuario|default:"Não informado" }}</li>
+                                    <li><strong>Tipo:</strong> 
+                                        <span class="badge bg-info">Usuário Não Registrado</span>
+                                    </li>
+                                    <li><small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Usuário forneceu dados de identificação, mas não possui conta no sistema
+                                    </small></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-success bg-opacity-10">
+                            <div class="card-body">
+                                <h6 class="text-success">Detalhes do Relatório</h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Título:</strong> {{ relatorio.titulo }}</li>
+                                    <li><strong>Criado em:</strong> {{ relatorio.data_criacao|date:"d/m/Y \à\s H:i" }}</li>
+                                    <li><strong>Tamanho:</strong> {{ relatorio.conteudo|length }} caracteres</li>
+                                    <li><strong>Localização:</strong> 
+                                        {% if relatorio.tem_localizacao %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-geo-alt-fill"></i> Com localização
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-geo-alt"></i> Sem localização
+                                            </span>
+                                        {% endif %}
+                                    </li>
+                                    <li><strong>Imagens:</strong> {{ relatorio.imagens_relatorio.count }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {% else %}
-                <!-- Usuário anônimo -->
+                <!-- Usuário verdadeiramente anônimo -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card bg-warning bg-opacity-10">
                             <div class="card-body">
                                 <h6 class="text-warning">Usuário Anônimo</h6>
                                 <ul class="list-unstyled mb-0">
-                                    <li><strong>Nome:</strong> {{ relatorio.nome_usuario|default:"Não informado" }}</li>
-                                    <li><strong>Email:</strong> {{ relatorio.email_usuario|default:"Não informado" }}</li>
+                                    <li><strong>Nome:</strong> Não informado</li>
+                                    <li><strong>Email:</strong> Não informado</li>
                                     <li><strong>Tipo:</strong> 
                                         <span class="badge bg-warning">Usuário Anônimo</span>
                                     </li>
+                                    <li><small class="text-muted">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        Nenhuma informação de identificação foi fornecida
+                                    </small></li>
                                 </ul>
                             </div>
                         </div>
@@ -333,11 +390,6 @@
             <a href="{% url 'core:admin_relatorios' %}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Voltar ao Painel Admin
             </a>
-            {% if user.is_staff %}
-                <a href="{% url 'admin:index' %}" class="btn btn-warning">
-                    <i class="bi bi-gear"></i> Django Admin
-                </a>
-            {% endif %}
         </div>
     </div>
 </div>
@@ -418,7 +470,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Função para copiar conteúdo
 function copyToClipboard() {
-    const content = `${document.querySelector('h3').textContent.replace('📄 ', '')}\n\n{{ relatorio.conteudo|escapejs }}\n\nCriado por: {{ relatorio.nome_autor|escapejs }}\nData: {{ relatorio.data_criacao|date:"d/m/Y H:i"|escapejs }}`;
+    let autorNome = '';
+    {% if relatorio.usuario %}
+        autorNome = '{{ relatorio.usuario.get_full_name|default:relatorio.usuario.username|escapejs }}';
+    {% elif relatorio.nome_usuario %}
+        autorNome = '{{ relatorio.nome_usuario|escapejs }} (não registrado)';
+    {% elif relatorio.email_usuario %}
+        autorNome = '{{ relatorio.email_usuario|escapejs }} (não registrado)';
+    {% else %}
+        autorNome = 'Anônimo';
+    {% endif %}
+    
+    const content = `${document.querySelector('h3').textContent.replace('📄 ', '')}\n\n{{ relatorio.conteudo|escapejs }}\n\nCriado por: ${autorNome}\nData: {{ relatorio.data_criacao|date:"d/m/Y H:i"|escapejs }}`;
     navigator.clipboard.writeText(content).then(function() {
         // Criar notificação de sucesso
         const alert = document.createElement('div');

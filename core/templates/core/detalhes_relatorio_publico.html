@@ -59,15 +59,21 @@
                                 {{ relatorio.usuario.get_full_name|default:relatorio.usuario.username }}
                                 <br>
                                 <small class="text-muted">(@{{ relatorio.usuario.username }})</small>
-                            {% else %}
-                                {{ relatorio.nome_usuario|default:"Anônimo" }}
+                            {% elif relatorio.nome_usuario or relatorio.email_usuario %}
+                                {{ relatorio.nome_usuario|default:"Usuário não registrado" }}
                                 <br>
                                 <small class="text-muted">
                                     {% if relatorio.email_usuario %}
                                         <i class="bi bi-envelope"></i> {{ relatorio.email_usuario }}
                                     {% else %}
-                                        (Usuário anônimo)
+                                        (Usuário não registrado)
                                     {% endif %}
+                                </small>
+                            {% else %}
+                                Anônimo
+                                <br>
+                                <small class="text-muted">
+                                    (Usuário anônimo)
                                 </small>
                             {% endif %}
                         </p>

@@ -34,9 +34,7 @@
                 <button class="btn btn-outline-success me-2" id="toggle-map">
                     <i class="bi bi-map"></i> <span id="map-toggle-text">Mostrar Mapa</span>
                 </button>
-                <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-gear"></i> Django Admin
-                </a>
+
             </div>
         </div>
         
@@ -90,13 +88,13 @@
                                 </optgroup>
                             {% endif %}
                             
-                            <!-- Usuários anônimos -->
+                            <!-- Usuários não registrados -->
                             {% if usuarios_anonimos %}
-                                <optgroup label="Usuários Anônimos">
+                                <optgroup label="Usuários Não Registrados">
                                     {% for nome_usuario in usuarios_anonimos %}
                                         <option value="{{ nome_usuario }}" 
                                                 {% if nome_usuario == usuario_filtro %}selected{% endif %}>
-                                            {{ nome_usuario }} (Anônimo)
+                                            {{ nome_usuario }} (Não registrado)
                                         </option>
                                     {% endfor %}
                                 </optgroup>
@@ -162,8 +160,11 @@
                                             <strong>
                                                 {% if relatorio.usuario %}
                                                     {{ relatorio.usuario.username }}
+                                                {% elif relatorio.nome_usuario or relatorio.email_usuario %}
+                                                    {{ relatorio.nome_usuario|default:"Não registrado" }}
+                                                    <span class="text-info">(não registrado)</span>
                                                 {% else %}
-                                                    {{ relatorio.nome_usuario|default:"Anônimo" }}
+                                                    <span class="text-warning">Anônimo</span>
                                                 {% endif %}
                                             </strong>
                                         </small>
@@ -180,12 +181,14 @@
                                                 {% else %}
                                                     Usuário: {{ relatorio.usuario.username }}
                                                 {% endif %}
-                                            {% else %}
+                                            {% elif relatorio.nome_usuario or relatorio.email_usuario %}
                                                 {% if relatorio.email_usuario %}
                                                     <i class="bi bi-envelope"></i> {{ relatorio.email_usuario }}
                                                 {% else %}
-                                                    (Usuário anônimo)
+                                                    (Usuário não registrado)
                                                 {% endif %}
+                                            {% else %}
+                                                (Usuário anônimo)
                                             {% endif %}
                                         </small>
                                         <small class="text-muted">
