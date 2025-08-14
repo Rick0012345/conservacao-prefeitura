@@ -2,13 +2,13 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: conservacao_prefeitura
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -21,13 +21,15 @@ services:
     volumes:
       - .:/code
     ports:
-      - "8000:8000"
+      - "${WEB_PORT}:8000"
     environment:
-      - DEBUG=1
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/conservacao_prefeitura
+      - DEBUG=${DEBUG}
+      - DATABASE_URL=${DATABASE_URL}
+      - PYTHONDONTWRITEBYTECODE=${PYTHONDONTWRITEBYTECODE}
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
-  postgres_data: 
+  postgres_data:

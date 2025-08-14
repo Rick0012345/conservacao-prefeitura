@@ -1,0 +1,1 @@
+# Este arquivo torna o diretório settings um pacote Python válido

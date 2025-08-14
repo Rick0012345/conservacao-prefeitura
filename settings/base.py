@@ -1,28 +1,17 @@
-
-
 from pathlib import Path
 import os
-from decouple import config
-import dj_database_url
+from dotenv import load_dotenv
+
+# Carrega variáveis de ambiente do arquivo .env no diretório dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / 'dotenv' / '.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-vpq0a3kn-^e2zle%uelsr8u*_1pwp&o=$71+_oj0_&k+dc^%u$')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
-
-ALLOWED_HOSTS = ['*']
-
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-vpq0a3kn-^e2zle%uelsr8u*_1pwp&o=$71+_oj0_&k+dc^%u$')
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -62,31 +51,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-# Database configuration with environment variable support
-DATABASE_URL = config('DATABASE_URL', default=None)
-
-if DATABASE_URL:
-    # Use PostgreSQL via environment variable (Docker)
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL)
+# Database configuration - PostgreSQL only
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'OPTIONS': {
+            'connect_timeout': 60,
+        },
+        'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
     }
-else:
-    # Fallback to SQLite for local development
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-
+}
 
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -102,22 +84,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
@@ -142,6 +115,4 @@ LOGIN_REDIRECT_URL = 'core:home'
 LOGOUT_REDIRECT_URL = 'core:home'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

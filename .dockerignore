@@ -20,4 +20,18 @@ coverage.xml
 *.log
 .DS_Store
 db.sqlite3
-staticfiles 
+staticfiles
+# Arquivos adicionais para otimização
+*.md
+.env*
+dotenv/
+media/
+temp_uploads/
+*.sqlite
+*.db
+node_modules/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/

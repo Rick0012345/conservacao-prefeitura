@@ -2,11 +2,18 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Carrega variáveis de ambiente do arquivo .env
+load_dotenv(Path(__file__).resolve().parent / 'dotenv' / '.env')
 
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+    # Usa a variável de ambiente DJANGO_SETTINGS_MODULE ou fallback para dev
+    settings_module = os.getenv('DJANGO_SETTINGS_MODULE', 'settings.dev')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
