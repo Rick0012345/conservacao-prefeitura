@@ -6,3 +6,5 @@ Pillow==11.3.0
 psycopg2-binary==2.9.9  # Driver para PostgreSQL
 python-decouple==3.8  # Para variáveis de ambiente
 python-dotenv==1.0.0  # Para carregar arquivo .env
+whitenoise==6.6.0  # Para servir arquivos estáticos em produção
+gunicorn==21.2.0  # Servidor WSGI para produção

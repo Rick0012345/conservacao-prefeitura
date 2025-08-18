@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: conservacao-prefeitura
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn project.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DJANGO_SETTINGS_MODULE
+        value: settings.prod
+      - key: DEBUG
+        value: 0
+      - key: POSTGRES_DB
+        value: db_prod_chmg
+      - key: POSTGRES_USER
+        value: db_prod_chmg_user
+      - key: POSTGRES_PASSWORD
+        value: wP6JeOaHE9AlLmTwnCBc7sokJkzo3Ygo
+      - key: POSTGRES_HOST
+        value: dpg-d2t4ojripnbc739ns1f0-a
+      - key: POSTGRES_PORT
+        value: 5432
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: PYTHONDONTWRITEBYTECODE
+        value: 1
+      - key: PYTHONUNBUFFERED
+        value: 1
+
+databases:
+  - name: postgres-db
+    databaseName: db_prod_chmg
+    user: db_prod_chmg_user
+    plan: free
